@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>義政くん 〜東山ものしり問答〜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700;900&family=Klee+One:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sumi:#15171c;       /* 墨 */
+    --sumi2:#1e2128;
+    --kin:#b9c0c9;        /* 銀 */
+    --kin-akarui:#e3e7ec;
+    --aka:#3f6d7a;        /* 藍 */
+    --aka-fuka:#284a55;
+    --washi:#f2ece0;      /* 和紙 */
+    --washi-kage:#ddd5c3;
+    --midori:#6f7d52;     /* 苔 */
+    --sumi-usu:rgba(242,236,224,.7);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:'Zen Maru Gothic',sans-serif;
+    background:
+      radial-gradient(ellipse at 50% -10%, #2b313b 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 120%, #20242c 0%, transparent 55%),
+      var(--sumi);
+    color:var(--washi);
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* 和紙テクスチャ風のノイズ */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
+    pointer-events:none;z-index:0;
+  }
+
+  /* ヘッダー（のぼり旗風） */
+  header{
+    position:relative;z-index:2;
+    text-align:center;
+    padding:18px 16px 10px;
+    border-bottom:3px solid var(--kin);
+    background:linear-gradient(180deg, rgba(40,74,85,.35), transparent);
+  }
+  .mon{
+    display:inline-flex;align-items:center;gap:14px;
+  }
+  .mon-maru{
+    width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--kin);
+    display:grid;place-items:center;
+    font-family:'Yuji Syuku',serif;font-size:24px;color:var(--kin-akarui);
+    background:radial-gradient(circle,#2b313b,#15171c);
+  }
+  h1{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(28px,4.2vw,52px);
+    color:var(--kin-akarui);
+    letter-spacing:.12em;
+    text-shadow:0 2px 0 #000,0 0 18px rgba(185,192,201,.35);
+  }
+  .sub{
+    font-size:clamp(13px,1.5vw,18px);
+    color:var(--sumi-usu);
+    margin-top:4px;letter-spacing:.18em;
+  }
+
+  /* メイン舞台 */
+  main{
+    position:relative;z-index:2;
+    flex:1;
+    width:min(1100px,94vw);
+    margin:0 auto;
+    padding:22px 0 30px;
+    display:flex;flex-direction:column;gap:20px;
+  }
+
+  /* 義政の語り場 */
+  .stage{
+    display:flex;align-items:flex-start;gap:22px;
+  }
+  .nobunaga{
+    flex:0 0 auto;
+    width:clamp(120px,15vw,180px);
+    text-align:center;
+  }
+  .face{
+    width:clamp(120px,15vw,180px);
+    height:clamp(120px,15vw,180px);
+    border-radius:50%;
+    overflow:hidden;
+    background:#1e2128;
+    border:5px solid var(--kin);
+    box-shadow:0 0 0 4px var(--sumi),0 10px 30px rgba(0,0,0,.5);
+    position:relative;
+    transition:transform .25s;
+  }
+  .face .mouth{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .face .mouth.closed{z-index:1;}
+  .face .mouth.open{z-index:2;opacity:0;}   /* ふだんは閉じた口。話すとき重ねて見せる */
+  .face.talking-open .mouth.open{opacity:1;}
+  .face.no-img .mouth{display:none;}
+  .face-fallback{
+    display:none;
+    position:absolute;inset:0;z-index:3;
+    width:100%;height:100%;
+    align-items:center;justify-content:center;
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(20px,2.6vw,32px);line-height:1.15;
+    color:var(--kin-akarui);letter-spacing:.05em;
+    background:radial-gradient(circle at 50% 38%, #2b313b, #15171c);
+  }
+  .face.no-img .face-fallback{display:flex;}
+  .face.talk{} /* 話し始めの顔の動きはなし（うなずき・傾きとも無効） */
+  .name-tag{
+    margin-top:10px;font-family:'Yuji Syuku',serif;
+    font-size:clamp(16px,2vw,24px);color:var(--kin-akarui);letter-spacing:.1em;
+  }
+
+  /* 吹き出し（巻物風） */
+  .scroll{
+    flex:1;position:relative;
+    background:linear-gradient(180deg,var(--washi),var(--washi-kage));
+    color:var(--sumi);
+    border-radius:14px;
+    padding:26px 30px;
+    min-height:170px;
+    box-shadow:0 12px 34px rgba(0,0,0,.45),inset 0 0 0 3px rgba(40,74,85,.25);
+    border:2px solid var(--kin);
+  }
+  .scroll::before{ /* 吹き出しのしっぽ */
+    content:"";position:absolute;left:-18px;top:48px;
+    border-style:solid;border-width:14px 18px 14px 0;
+    border-color:transparent var(--kin) transparent transparent;
+  }
+  .scroll .answer{
+    font-family:'Klee One',serif;
+    font-size:clamp(20px,2.6vw,32px);
+    line-height:1.75;font-weight:600;
+    letter-spacing:.02em;
+  }
+  .scroll .answer .em{color:var(--aka-fuka);font-weight:700;}
+
+  /* 質問エリア */
+  .ask-zone{
+    background:rgba(30,33,40,.7);
+    border:2px solid var(--kin);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .ask-zone .label{
+    font-size:clamp(15px,1.7vw,20px);color:var(--kin-akarui);
+    margin-bottom:12px;letter-spacing:.1em;font-weight:700;
+  }
+  .input-row{display:flex;gap:12px;flex-wrap:wrap;}
+  #q{
+    flex:1;min-width:220px;
+    font-family:'Zen Maru Gothic',sans-serif;
+    font-size:clamp(18px,2.2vw,26px);font-weight:500;
+    padding:14px 18px;border-radius:10px;border:none;
+    background:var(--washi);color:var(--sumi);
+  }
+  #q:focus{outline:3px solid var(--kin-akarui);}
+  .btn-ask{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(18px,2.2vw,26px);
+    padding:14px 28px;border:none;border-radius:10px;cursor:pointer;
+    background:linear-gradient(180deg,var(--aka),var(--aka-fuka));
+    color:var(--washi);letter-spacing:.1em;
+    box-shadow:0 4px 0 #163039,0 6px 14px rgba(0,0,0,.4);
+    transition:transform .08s;
+  }
+  .btn-ask:active{transform:translateY(4px);box-shadow:0 1px 0 #163039;}
+
+  /* おすすめ問い */
+  .topics{margin-top:8px;}
+  .topics .t-label{font-size:clamp(13px,1.5vw,17px);color:var(--sumi-usu);margin:6px 2px 12px;letter-spacing:.08em;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+    font-size:clamp(15px,1.8vw,21px);
+    padding:11px 18px;border-radius:999px;cursor:pointer;
+    background:rgba(242,236,224,.08);
+    color:var(--washi);
+    border:2px solid var(--kin);
+    transition:all .15s;
+  }
+  .chip:hover{background:var(--kin);color:var(--sumi);transform:translateY(-2px);}
+
+  .panel{display:none;}
+  .panel.show{display:block;}
+
+  /* 顔のリアクション */
+  .face.seikai{box-shadow:0 0 0 4px var(--sumi),0 0 34px 6px rgba(185,192,201,.85),0 10px 30px rgba(0,0,0,.5);}
+
+  footer{
+    position:relative;z-index:2;text-align:center;
+    font-size:13px;color:rgba(242,236,224,.4);
+    padding:14px;letter-spacing:.1em;
+  }
+  /* ===== モード切替タブ ===== */
+  nav.modes{
+    position:relative;z-index:2;
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+    padding:14px 12px 0;
+  }
+  .mode-btn{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(15px,1.9vw,22px);
+    padding:10px 22px;border-radius:999px;cursor:pointer;
+    background:rgba(242,236,224,.07);
+    color:var(--washi);
+    border:2px solid var(--kin);letter-spacing:.08em;
+    transition:all .15s;
+  }
+  .mode-btn:hover{transform:translateY(-2px);}
+  .mode-btn.active{
+    background:var(--kin);color:var(--sumi);
+    box-shadow:0 0 18px rgba(185,192,201,.4);
+  }
+
+  /* ===== クイズ ===== */
+  .quiz-meta{
+    display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+    margin-bottom:14px;
+  }
+  .quiz-meta .stat{
+    background:rgba(30,33,40,.7);border:2px solid var(--kin);
+    border-radius:10px;padding:8px 14px;
+    font-size:clamp(14px,1.6vw,19px);font-weight:700;color:var(--kin-akarui);
+  }
+  .quiz-meta .stat b{color:#f0c95a;}
+  .quiz-choices{display:flex;flex-direction:column;gap:12px;}
+  .qchoice{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;
+    font-size:clamp(17px,2.1vw,24px);text-align:left;
+    padding:15px 20px;border-radius:12px;cursor:pointer;
+    background:var(--washi);color:var(--sumi);
+    border:3px solid transparent;
+    transition:all .12s;
+  }
+  .qchoice:hover{transform:translateX(4px);border-color:var(--kin);}
+  .qchoice:disabled{cursor:default;opacity:.85;}
+  .qchoice.correct{border-color:var(--midori);background:#dff0d2;}
+  .qchoice.wrong{border-color:#b9472f;background:#f3d8d2;}
+  .quiz-foot{display:flex;justify-content:center;margin-top:16px;}
+  .btn-next{
+    font-family:'Yuji Syuku',serif;
+    font-size:clamp(17px,2.1vw,24px);
+    padding:13px 30px;border:none;border-radius:10px;cursor:pointer;
+    background:linear-gradient(180deg,var(--aka),var(--aka-fuka));
+    color:var(--washi);letter-spacing:.1em;
+    box-shadow:0 4px 0 #163039,0 6px 14px rgba(0,0,0,.4);
+    transition:transform .08s;
+  }
+  .btn-next:active{transform:translateY(4px);box-shadow:0 1px 0 #163039;}
+
+  /* ===== スタンプ帳 ===== */
+  .stamp-head{
+    text-align:center;margin-bottom:16px;
+    font-size:clamp(15px,1.8vw,21px);color:var(--kin-akarui);font-weight:700;letter-spacing:.06em;
+  }
+  .stamp-head b{color:#f0c95a;font-size:1.25em;}
+  .stamp-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  }
+  .stamp{
+    position:relative;overflow:hidden;
+    aspect-ratio:1/1;border-radius:50%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:3px dashed rgba(242,236,224,.28);
+    background:rgba(30,33,40,.5);
+    text-align:center;padding:6px;
+    transition:transform .2s;
+  }
+  /* 獲得した絵は円いっぱいに広げ、円からはみ出した部分は切る */
+  .stamp .art{position:absolute;inset:0;z-index:1;}
+  .stamp .art img{width:100%;height:100%;display:block;object-fit:cover;}
+  /* 未獲得のときに見せる分野名と進みぐあい */
+  .stamp .lab{
+    font-size:clamp(10px,1.4vw,15px);
+    color:rgba(242,236,224,.5);font-weight:700;letter-spacing:.02em;line-height:1.25;
+  }
+  .stamp .prog{
+    margin-top:3px;font-size:clamp(9px,1.1vw,12px);
+    color:rgba(242,236,224,.38);
+  }
+  .stamp.earned{
+    border:3px solid #b9472f;border-style:double;
+    transform:rotate(-4deg);
+  }
+  /* 獲得後は画像の上に分野名をのせる */
+  .stamp.earned .lab{
+    position:absolute;left:0;right:0;bottom:0;z-index:2;margin:0;
+    padding:10px 4px 6px;
+    color:#fff;font-weight:800;
+    text-shadow:0 1px 3px rgba(0,0,0,.85);
+    background:linear-gradient(transparent,rgba(15,12,10,.72));
+  }
+  @media(max-width:560px){
+    .stamp-grid{grid-template-columns:repeat(3,1fr);}
+  }
+
+  /* ===== スタンプ獲得トースト ===== */
+  #toast{
+    position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-140%);
+    z-index:9;
+    background:linear-gradient(180deg,#fbe7c8,#f0d8ab);
+    color:#5a2018;border:3px double #b9472f;border-radius:12px;
+    padding:12px 22px;font-family:'Yuji Syuku',serif;
+    font-size:clamp(16px,2vw,22px);font-weight:700;letter-spacing:.05em;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    opacity:0;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .45s;
+    pointer-events:none;white-space:nowrap;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+  @media(max-width:560px){
+    .stage{flex-direction:column;align-items:center;}
+    .scroll::before{display:none;}
+    .nobunaga{order:-1;}
+  }
+  /* ===== 書院造 ===== */
+  .shoin-hint{text-align:center;color:var(--sumi-usu);font-size:clamp(13px,1.6vw,18px);margin:4px 0 14px;letter-spacing:.04em;}
+  .shoin-wrap{
+    position:relative;max-width:680px;margin:0 auto;
+    border:3px solid var(--kin);border-radius:12px;overflow:hidden;
+    background:#0c0e12;box-shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  .shoin-wrap img{width:100%;display:block;}
+  .shoin-overlay{position:absolute;inset:0;}
+  .hot{
+    position:absolute;width:clamp(28px,4.5vw,38px);height:clamp(28px,4.5vw,38px);
+    border-radius:50%;transform:translate(-50%,-50%);
+    background:rgba(185,71,47,.92);border:3px solid #fff;color:#fff;
+    display:grid;place-items:center;font-family:'Zen Maru Gothic',sans-serif;
+    font-weight:800;font-size:clamp(14px,2vw,18px);cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.6);
+    animation:hotpulse 2s infinite;
+  }
+  .hot:hover{background:#d65a44;}
+  .hot.active{background:var(--aka);animation:none;transform:translate(-50%,-50%) scale(1.18);}
+  @keyframes hotpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}50%{box-shadow:0 0 0 9px rgba(255,255,255,0)}}
+  .shoin-tools{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center;margin-top:14px;}
+  .shoin-tools select{
+    font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:clamp(14px,1.7vw,18px);
+    padding:8px 12px;border-radius:8px;border:2px solid var(--kin);background:var(--washi);color:var(--sumi);
+  }
+  #shoinEditNote{display:none;text-align:center;color:var(--sumi-usu);font-size:clamp(12px,1.5vw,16px);margin-top:10px;line-height:1.6;}
+
+</style>
+</head>
+<body>
+  <header>
+    <div class="mon">
+      <span class="mon-maru">足</span>
+      <div>
+        <h1>義政くん</h1>
+        <div class="sub">ひがしやま ものしり もんどう</div>
+      </div>
+      <span class="mon-maru">利</span>
+    </div>
+  </header>
+
+  <div id="toast"></div>
+
+  <nav class="modes">
+    <button class="mode-btn active" data-mode="qa">ものしり</button>
+    <button class="mode-btn" data-mode="quiz">クイズ</button>
+    <button class="mode-btn" data-mode="stamp">スタンプ帳</button>
+    <button class="mode-btn" data-mode="shoin">書院造</button>
+  </nav>
+
+  <main>
+    <div class="stage">
+      <div class="nobunaga">
+        <div class="face" id="face">
+          <img class="mouth closed" src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/yosimasa.png" alt="足利義政"
+               onerror="this.closest('.face').classList.add('no-img');">
+          <img class="mouth open" src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/yosimasa2.png" alt="" aria-hidden="true">
+          <span class="face-fallback">足<br>利<br>義<br>政</span>
+        </div>
+        <div class="name-tag">足利義政</div>
+      </div>
+      <div class="scroll">
+        <div class="answer" id="answer"></div>
+      </div>
+    </div>
+
+    <div class="panel show" id="panel-qa">
+      <div class="ask-zone">
+        <div class="label">▼ 義政くんに きいてみよう</div>
+        <div class="input-row">
+          <input id="q" type="text" placeholder="しつもんを 入力してね（れい：銀閣ってなに？）" autocomplete="off">
+          <button class="btn-ask" id="askBtn">きく</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-quiz">
+      <div class="quiz-meta">
+        <div class="stat">れんぞく正解：<b id="qStreak">0</b></div>
+        <div class="stat">こたえた：<b id="qTotal">0</b></div>
+        <div class="stat">正解：<b id="qCorrect">0</b></div>
+      </div>
+      <div class="quiz-choices" id="quizChoices"></div>
+      <div class="quiz-foot">
+        <button class="btn-next" id="quizNext">つぎの問題</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-stamp">
+      <div class="stamp-head">あつめたスタンプ：<b id="stampCount">0</b> ／ 12</div>
+      <div class="stamp-grid" id="stampGrid"></div>
+    </div>
+
+    <div class="panel" id="panel-shoin">
+      <div class="shoin-hint">▼ 番号のついたところを押すと、名前と説明が出るよ</div>
+      <div class="shoin-wrap" id="shoinWrap">
+        <img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/shoindukuri.png" alt="書院造の部屋">
+        <div class="shoin-overlay" id="shoinOverlay"></div>
+      </div>
+      <div class="shoin-tools">
+        <button class="mode-btn" id="shoinEditToggle">位置をなおす（先生用）</button>
+        <select id="shoinSelect" style="display:none"></select>
+      </div>
+      <div id="shoinEditNote">部品をえらんでから、絵の正しい場所をクリックすると、その番号がそこへ動きます。（なおした位置は、このパソコンにおぼえておきます）</div>
+    </div>
+  </main>
+
+  <footer>クラスで楽しむ 室町もんどうアプリ／答えは小学生むけにやさしくまとめています</footer>
+
+<script>
+// ===== 足利義政の知識（小学4年生むけ・義政口調） =====
+// キーワードに当てはまる問いが来たら、その答えを返す。
+const KB = [
+  // ===== 生い立ち・名前 =====
+  {
+    cat:"生いたち",
+    keys:["生まれ","うまれ","いつ生","何年生","誕生","どこで生","生年"],
+    a:"わしが生まれたのは1436年、京都じゃ。父は六代将軍・足利義教(あしかがよしのり)。室町幕府の将軍家にうまれた身よ。じゃが、わしが幼いころに父が思わぬ形で世を去り、わが家はゆれていた。そんな世に、わしは育ったのじゃ。"
+  },
+  {
+    cat:"生いたち",
+    keys:["名前","なまえ","義成","よしなり","名のり","改名","名を変え","幼名","ようみょう"],
+    a:"わしは将軍となったはじめ、「義成(よしなり)」と名のっておった。のちに1453年、「義政(よしまさ)」とあらためたのじゃ。今みなが知る「足利義政」は、この名よ。名を変えるのは、武家ではよくあることであった。"
+  },
+  {
+    cat:"生いたち",
+    keys:["何代","なんだい","八代","8代","代目","何代目","将軍の何"],
+    a:"わしは室町幕府の八代将軍じゃ。初代は足利尊氏(たかうじ)、三代は金閣を建てた義満(よしみつ)――わしの祖父にあたる。その流れをつぐ八人目が、このわしというわけよ。"
+  },
+  {
+    cat:"生いたち",
+    keys:["どんな時代","時代","じだい","いつの人","室町","むろまち","何時代"],
+    a:"わしが生きたのは室町時代の後半じゃ。将軍の力はおとろえ、各地の有力な大名たちが力をつけていた、乱れのきざしの世であった。やがてわしの代に大きな戦が起き、世は戦国へとかたむいていく……。"
+  },
+  {
+    cat:"生いたち",
+    keys:["子ども時代","こどものころ","小さいころ","幼い","将軍になった","いつ将軍","8歳","若くして"],
+    a:"わしは八つのころに、次の将軍にえらばれた。じゃが幼すぎて、すぐにはつとめられぬ。十三、四のころ、正式に八代将軍となったのじゃ。幼くして重い役をせおう――それがわしの始まりであった。"
+  },
+  {
+    cat:"生いたち",
+    keys:["義満","よしみつ","祖父","そふ","金閣","きんかく","おじいさん","北山"],
+    a:"わしの祖父は、三代将軍・足利義満(よしみつ)じゃ。あの金閣(きんかく)を建て、はなやかな北山文化(きたやまぶんか)を築いた、室町幕府でもっとも力ある将軍であった。祖父の金閣に対し、わしはのちに銀閣(ぎんかく)を建てる。くらべて見るのも、おもしろかろう。"
+  },
+  // ===== 家族 =====
+  {
+    cat:"家族",
+    keys:["父","ちち","おとう","義教","よしのり"],
+    a:"わしの父は、六代将軍・足利義教(よしのり)じゃ。たいへんきびしい将軍で、人々に「おそろしい」とおそれられた。じゃがそのきびしさゆえか、家臣にうらまれ、宴(うたげ)のさなかに討たれてしもうた。わしが六つのときのことよ。"
+  },
+  {
+    cat:"家族",
+    keys:["嘉吉の乱","かきつ","赤松","あかまつ","父の死","父が殺","暗殺","父が討"],
+    a:"1441年、わしの父・義教は、家臣の赤松満祐(あかまつみつすけ)に討たれた。これを嘉吉の乱(かきつのらん)という。将軍が家臣に殺される――それほど世の上下がゆらいでいたのじゃ。下の者が上をたおす「下剋上(げこくじょう)」の世が、もう始まりかけておった。"
+  },
+  {
+    cat:"家族",
+    keys:["兄","あに","義勝","よしかつ","七代","7代"],
+    a:"父のあと、七代将軍となったのは、わしの兄・義勝(よしかつ)じゃ。じゃが兄はまだ幼く、将軍になってわずか一年ほどで、十歳の若さで世を去ってしもうた。そこで次にえらばれたのが、このわしであったのよ。"
+  },
+  {
+    cat:"家族",
+    keys:["母","はは","おかあ","重子","しげこ","日野重子"],
+    a:"わしの母は日野重子(ひのしげこ)じゃ。日野家(ひのけ)という、将軍家とふかいつながりをもつ家の出よ。母は政(まつりごと)にも口を出すほど力をもっておった。わしの妻も同じ日野家から来ておる。日野の女(おなご)は、みな気の強い人であったのう。"
+  },
+  {
+    cat:"家族",
+    keys:["妻","つま","富子","とみこ","日野富子","お嫁","正室","結婚"],
+    a:"わしの妻は日野富子(ひのとみこ)じゃ。たいへん賢く、しっかり者でな。のちに政やお金のことに深くかかわり、世に名を知られることになる。「富子は強すぎる」と言う者もおるが、乱れた世で家を守ろうとした人でもあった。見方はいろいろよ。"
+  },
+  {
+    cat:"家族",
+    keys:["弟","おとうと","義視","よしみ","跡継ぎの弟"],
+    a:"わしの弟に、義視(よしみ)がおる。わしになかなか子ができなんだので、弟を僧(そう)の身からよびもどし、次の将軍にしようと約束したのじゃ。ところが、そのあとに息子が生まれてな……これが、のちの大きな争いの種になってしもうた。"
+  },
+  {
+    cat:"家族",
+    keys:["息子","むすこ","義尚","よしひさ","九代","9代","あとつぎの子"],
+    a:"わしと富子の子が、義尚(よしひさ)じゃ。富子はこの子を次の将軍にしたいと強く望んだ。弟の義視とあとつぎを争うことになり、これが応仁の乱(おうにんのらん)の一因となった。義尚はのちに九代将軍となるが、若くして世を去ってしもうた……。"
+  },
+  {
+    cat:"家族",
+    keys:["娘","むすめ","子は何人","子どもたち","ほかの子"],
+    a:"わしには義尚のほかにも子がおったと伝わるが、あとつぎとして大きくかかわったのは、やはり義尚じゃ。子をめぐる争いが世を乱した――そのことを思うと、今も胸が重くなる。家のあとつぎとは、まことにむずかしいものよのう。"
+  },
+  {
+    cat:"家族",
+    keys:["日野家","ひのけ","日野","つながり"],
+    a:"日野家(ひのけ)は、代々の足利将軍に妻をおくってきた、ゆかりの深い家じゃ。わしの母も妻も、この日野家の出よ。日野家は将軍家とむすびつくことで力をもち、女性たちも政に影響をおよぼした。一つの家との結びつきが、世を動かすこともあるのじゃ。"
+  },
+  // ===== 政治・世の乱れ =====
+  {
+    cat:"政治と乱",
+    keys:["どんな将軍","政治","せいじ","まつりごと","政をした","治めた"],
+    a:"正直に言おう。わしは、政(まつりごと)のうまい将軍ではなかった。はじめは世を立て直そうと努めもしたが、力ある大名たちをおさえきれず、争いをふせげなんだ。やがてわしは政から心がはなれ、文化の道へと向かっていった。これもまた、わしという者の真実よ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["なぜ政治","うまくいかな","失敗","しっぱい","おさえられ","力がない","弱い将軍"],
+    a:"なぜ世をおさめきれなんだか。すでにこのころ、将軍の力はおとろえ、各地の守護大名(しゅごだいみょう)が強くなりすぎておった。わし一人の命令では、もはや彼らは動かぬ。家の中の争いも重なり、わしは流れをとめられなんだのじゃ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["守護大名","しゅごだいみょう","大名","だいみょう","細川氏","畠山","斯波","しば"],
+    a:"守護大名(しゅごだいみょう)とは、国々をまかされた有力な武家じゃ。細川(ほそかわ)、山名(やまな)、畠山(はたけやま)、斯波(しば)などが力をもっておった。彼らの中でもあとつぎ争いが起き、それがからみあって、ついに大きな戦へとふくれあがったのよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["徳政令","とくせいれい","土一揆","つちいっき","借金","しゃっきん","一揆","いっき"],
+    a:"わしの代には「徳政令(とくせいれい)」――借金をなしにする命令が、たびたび出された。生活に苦しむ人々が「借金を帳消しに」と立ち上がる土一揆(つちいっき)が、何度も起きたからじゃ。世がそれほど乱れ、人々が苦しんでいた、そのあらわれよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["飢饉","ききん","寛正","かんしょう","食べ物がない","人が死","食べ物がなく"],
+    a:"1461年ごろ、京都を大きな飢饉(ききん)がおそった。寛正の大飢饉(かんしょうのだいききん)というてな、おびただしい人々が飢えて命を落とした。じゃがそのころ、わしは屋敷や庭づくりに心をくだいておった……。民の苦しみに目を向けなんだと、今もきびしく責められておる。"
+  },
+  // ===== 応仁の乱 =====
+  {
+    cat:"政治と乱",
+    keys:["応仁の乱","おうにん","応仁","大きな戦","おおきな戦"],
+    a:"応仁の乱(おうにんのらん)――1467年から十一年もつづいた、世をゆるがす大戦じゃ。京都を東軍と西軍に分けてのこの戦は、都を焼け野原にし、世を戦国へとつき落とした。わしの代に起きたこの乱は、わしの生がいで最も大きな、そしてつらいできごとよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["応仁の乱の原因","なぜ応仁","原因","げんいん","なぜ戦","どうして戦"],
+    a:"応仁の乱が起きたわけは、一つではない。わしのあとつぎ争い(弟か息子か)、畠山や斯波といった大名の家のあとつぎ争い、そして細川と山名という二大勢力の対立――これらがすべてからみあい、ついにはじけてしもうたのじゃ。火種(ひだね)がいくつも重なっておったのよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["跡継ぎ","あとつぎ","跡継争","弟か息子","義視か義尚","あとつぎ争い"],
+    a:"わしは子がないと思い、弟・義視を次の将軍にすると約束した。ところがその後、息子・義尚が生まれてしもうた。妻・富子は「わが子こそ次の将軍に」と望む。弟をおすか、息子をおすか――この争いが、大名たちをまきこみ、大戦の引き金の一つとなったのじゃ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["東軍","西軍","とうぐん","せいぐん","細川勝元","山名宗全","勝元","宗全","そうぜん","かつもと"],
+    a:"応仁の乱では、京の都が二つに分かれた。東軍(とうぐん)をひきいたのは細川勝元(ほそかわかつもと)、西軍(せいぐん)をひきいたのは山名宗全(やまなそうぜん)じゃ。この二人の力ある大名の対立が、戦をいっそう大きくした。都のまんなかで、味方と敵がにらみあったのよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["京都が焼","きょうとが焼","都が焼","焼け野原","京都どうなった","荒れた","破壊"],
+    a:"応仁の乱で、わが京の都は焼け野原となってしもうた。寺や屋敷、町並みの多くが焼け落ち、人々は散り散りに逃げた。千年の都が、戦火に灰となる――それを将軍でありながらふせげなんだことが、今も悔やまれてならぬ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["何年","なんねん","十一年","11年","どれくらい","期間","つづいた"],
+    a:"応仁の乱は、1467年から1477年まで、じつに十一年ものあいだ続いた。これほど長く、しかも都のただ中で戦が続けば、世が乱れぬはずがない。長い戦は、勝ち負け以上に、世そのものをこわしてしまうのじゃ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["どうやって終わ","どう終わ","終わり方","終結","おわった","勝ったのは"],
+    a:"応仁の乱は、はっきりと勝者が決まったわけではない。長びくうちに兵もつかれ、東西の大将・勝元と宗全も相ついで世を去り、大名たちは自分の国へと帰っていった。なんとなく立ち消えになった――そんな終わり方じゃ。残ったのは、荒れはてた都だけであった。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["戦の間","乱の間","義政は何を","何をしていた","戦のとき何"],
+    a:"はずかしながら、応仁の乱のさなか、わしは戦をおさめることよりも、屋敷や庭、茶の湯にこころを向けておった。世が燃えるのを横目に、美しいものを求めていたのじゃ。「将軍として無責任だ」と責められても、返す言葉はない。これがわしの弱さよ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["下剋上","げこくじょう","下が上","身分が逆"],
+    a:"「下剋上(げこくじょう)」とは、下の身分の者が、上の者をたおして力をにぎることよ。応仁の乱ののち、この風が世にひろがった。家臣が主君を、子が親をしのぐ――秩序がくずれ、力ある者がのし上がる。そういう世のはじまりであったのじゃ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["戦国時代","せんごく","戦国のはじまり","戦国の始ま","乱世のはじ"],
+    a:"応仁の乱は、「戦国時代(せんごくじだい)のはじまり」とよくいわれる。この乱で将軍の力も都の秩序もくずれ、各地で大名たちが争い合う乱世(らんせい)へと入っていった。のちに織田信長らがあらわれる、長い戦乱の世――その入口に、わしの代があったのじゃ。"
+  },
+  // ===== 富子 =====
+  {
+    cat:"政治と乱",
+    keys:["富子はどんな","富子の性格","富子ってだれ","とみこは"],
+    a:"妻・富子は、たいへん頭のよい、しっかりとした人であった。乱れた世にあって、家やお金のことを一手にとりしきった。気が強く、政にも口を出したゆえ、後の世では「こわい女(おなご)」のように語られもする。じゃが、それだけの力がなければ、あの乱世は乗りきれなんだのじゃ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["富子のお金","とみこのお金","お金もうけ","金もうけ","蓄財","富子が稼","お金持ち"],
+    a:"富子は、お金を集めるのにたいそうたけておった。米を売り買いし、お金を貸し、都の出入り口に関所(せきしょ)をもうけて通行料をとった。戦で幕府のたくわえがそこをついても、富子の手もとには大金があったという。よくも悪くも、たぐいまれな才(さい)よ。"
+  },
+  {
+    cat:"政治と乱",
+    keys:["関所","せきしょ","七口","ななくち","通行料","都の関"],
+    a:"富子は、京の都の出入り口――いわゆる「七口(ななくち)」に関所をもうけ、行き来する人や荷から通行料をとった。これでずいぶんお金を集めたという。人々の不満も買うたが、戦で幕府が貧しくなる中、お金を生み出す知恵でもあったのじゃ。"
+  },
+  // ===== 銀閣・東山殿 =====
+  {
+    cat:"銀閣",
+    keys:["銀閣","ぎんかく","ぎんかくじ","銀閣寺"],
+    a:"銀閣(ぎんかく)は、わしが京の東山(ひがしやま)に建てた、二階だての美しい建物よ。正しくは観音殿(かんのんでん)という。祖父の金閣(きんかく)にならいつつ、わびた静けさをこめた。今は慈照寺(じしょうじ)というお寺の一部となり、世界遺産にもなっておる。わしの心の、いちばんの宝じゃ。"
+  },
+  {
+    cat:"銀閣",
+    keys:["なぜ銀じゃ","銀色じゃない","銀ばってない","銀がない","本当に銀","銀ぱく","銀箔","銀なの"],
+    a:"よくぞ聞いた。じつは銀閣には、銀ははってはおらぬ。「金閣が金なら、銀閣は銀をはる予定だった」と言われることもあるが、たしかな証(あかし)はない。応仁の乱のあとで世も貧しく、わしも完成を見ずに世を去った。銀がなくとも、あの静かなたたずまいこそ美しい――わしはそう思うておる。"
+  },
+  {
+    cat:"銀閣",
+    keys:["銀閣いつ","いつ建て","建てた年","ぎんかくの建","造りはじめ"],
+    a:"銀閣をふくむ東山の山荘を建てはじめたのは、1482年のことじゃ。応仁の乱が終わり、わしが将軍の座を息子にゆずったあとよ。政から身をひいたわしは、のこる力をすべて、この美しい場所づくりにそそいだのじゃ。"
+  },
+  {
+    cat:"銀閣",
+    keys:["東山殿","ひがしやまどの","東山山荘","山荘","さんそう","隠居所"],
+    a:"東山殿(ひがしやまどの)は、わしが晩年をすごした山荘よ。銀閣(観音殿)や東求堂(とうぐどう)、美しい庭などからなる。ここでわしは、茶の湯や和歌、庭をながめる日々をおくった。政の世をはなれ、美の世に生きる――わしの夢の場所であった。"
+  },
+  {
+    cat:"銀閣",
+    keys:["慈照寺","じしょうじ","お寺になった","寺になった","死後のお寺"],
+    a:"わしが世を去ったのち、東山殿は遺言によって寺となり、「慈照寺(じしょうじ)」と名づけられた。これが、今みなが「銀閣寺」とよぶお寺じゃ。わしのまいた美の種が、五百年をこえて、いまも多くの人をひきよせておる。うれしいことよのう。"
+  },
+  {
+    cat:"銀閣",
+    keys:["金閣と銀閣","金閣との違い","どっちが","金と銀","金閣銀閣"],
+    a:"金閣(きんかく)は祖父・義満が建てた、金にかがやくはなやかな建物。銀閣(ぎんかく)はわしが建てた、銀ははらぬ、しずかでひかえめな建物よ。はなやかな北山文化と、わびた東山文化――二つの建物は、二つの時代の美しさのちがいを、そのまま映しておるのじゃ。"
+  },
+  {
+    cat:"銀閣",
+    keys:["銀沙灘","ぎんしゃだん","向月台","こうげつだい","白い砂","すなの庭","銀閣の庭"],
+    a:"銀閣の前には、白い砂を波のようにならべた「銀沙灘(ぎんしゃだん)」と、富士山のような形にもった「向月台(こうげつだい)」がある。月の光を受けて、砂が銀色にかがやくよう工夫したともいう。月をめでる――それが、わしの好んだ風流(ふうりゅう)よ。"
+  },
+  {
+    cat:"銀閣",
+    keys:["東求堂","とうぐどう","同仁斎","どうじんさい","書斎","四畳半","茶室のもと"],
+    a:"銀閣のそばに、東求堂(とうぐどう)という小さなお堂がある。その一室「同仁斎(どうじんさい)」は、四畳半(よじょうはん)ほどの、わしの書斎(しょさい)じゃ。畳をしきつめ、棚をしつらえたこの部屋は、のちの茶室や和室(わしつ)のもとになったといわれる。小さな部屋から、大きな文化が生まれたのよ。"
+  },
+  // ===== 東山文化 =====
+  {
+    cat:"文化",
+    keys:["東山文化","ひがしやまぶんか","どんな文化","文化とは"],
+    a:"わしを中心に、京の東山で花ひらいた文化を「東山文化(ひがしやまぶんか)」という。はなやかさよりも、しずけさ・素朴さ・おくゆきを大切にした文化じゃ。茶の湯、庭、書院造(しょいんづくり)、水墨画……いまの日本らしい美しさの多くが、この東山文化から生まれたのよ。"
+  },
+  {
+    cat:"文化",
+    keys:["北山文化","きたやま","北山との違い","北山と東山"],
+    a:"祖父・義満の時代の文化を「北山文化(きたやまぶんか)」、わしの時代を「東山文化(ひがしやまぶんか)」という。北山は金閣のように、はなやかで豪華。東山は銀閣のように、しずかでわびた美しさよ。きらびやかさから、おちついた深みへ――時代とともに、美の好みもうつろうのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["わび","さび","わびさび","わび・さび","しぶい","素朴","質素な美"],
+    a:"「わび・さび」とは、はなやかでなくとも、しずかで、ものさびた中に見いだす美しさのことよ。完ぺきでないもの、古びたものにこそ、深い味わいがある――そう感じる心じゃ。わしの東山文化は、この「わび・さび」の心を大きく育てた。日本らしい美の根っこよ。"
+  },
+  {
+    cat:"文化",
+    keys:["茶の湯","ちゃのゆ","茶道","さどう","お茶","おちゃ"],
+    a:"わしは茶の湯(ちゃのゆ)を好んだ。ただお茶を飲むのではない。しずかな部屋で、心をおちつけ、ひとときの美しさを味わう――それが茶の湯よ。わしのころに、はなやかな茶から、わびた素朴な茶へと向かいはじめた。のちの千利休(せんのりきゅう)の茶も、もとをたどればここに行きつくのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["村田珠光","むらたじゅこう","珠光","じゅこう","わび茶","茶の先生"],
+    a:"村田珠光(むらたじゅこう)は、「わび茶(ちゃ)」――しずかで素朴な茶の心をひらいた人といわれる。わしの茶の湯にも、こうした新しい茶の心が流れこんでおった。豪華な道具をきそうのではなく、心の静けさを味わう茶。これがのちの茶道へと育っていくのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["書院造","しょいんづくり","書院","和室","わしつ","畳の部屋","建築"],
+    a:"書院造(しょいんづくり)とは、畳をしきつめ、床の間(とこのま)や違い棚(ちがいだな)、明かり障子(しょうじ)をそなえた、おちついた部屋のつくりよ。同仁斎(どうじんさい)が、その早い例といわれる。今の和室(わしつ)の原型は、じつはわしの東山殿にあるのじゃ。畳の上にすわるたび、思い出しておくれ。"
+  },
+  {
+    cat:"文化",
+    keys:["床の間","とこのま","違い棚","ちがいだな","掛け軸","かけじく"],
+    a:"床の間(とこのま)は、部屋の一角を少し高くし、掛け軸(かけじく)や花をかざる場所よ。書院造とともに生まれ、いまも和室の顔となっておる。何もない空間に、一幅(いっぷく)の絵、一輪の花――そこに美を見いだす。それが、わしらの美の心じゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["いけばな","華道","かどう","生け花","花をいける","いけ花"],
+    a:"花をうつわにさし、その美しさをめでる「いけばな(華道)」も、この東山文化のころにととのっていった。ただ花をかざるのではなく、枝ぶりや余白(よはく)に心をくばる。一輪の花に、自然そのものを見る――しずかで、おくゆきのある楽しみよ。"
+  },
+  {
+    cat:"文化",
+    keys:["水墨画","すいぼくが","墨絵","すみえ","白黒の絵","墨の絵"],
+    a:"水墨画(すいぼくが)とは、墨(すみ)一色で、濃淡(のうたん)だけでえがく絵じゃ。色をつかわずとも、山や水、霧(きり)のけはいまで描き出す。色がないからこそ、見る人が心で景色をおぎなう。この奥ふかい絵を、わしの時代は大いに好んだのよ。"
+  },
+  {
+    cat:"文化",
+    keys:["雪舟","せっしゅう","水墨画の人","絵の名人","えのめいじん"],
+    a:"雪舟(せっしゅう)は、わしと同じころに生きた、水墨画の大名人じゃ。明(みん)――いまの中国にわたって学び、日本の水墨画を大きく高めた。墨一色で雄大な山水を描き出すその絵は、いまも宝とされておる。文化のたからは、人がつくるのじゃのう。"
+  },
+  {
+    cat:"文化",
+    keys:["能","のう","狂言","きょうげん","お能","舞台","げき","劇"],
+    a:"能(のう)と狂言(きょうげん)も、このころにいっそうみがかれた。能は、面(めん)をつけ、しずかにゆったりと舞う、おごそかな劇よ。狂言は、人々を笑わせるこっけいな劇じゃ。きびしい世にあって、人は美と笑いを求める。文化とは、そういう心の糧(かて)でもあるのよ。"
+  },
+  {
+    cat:"文化",
+    keys:["連歌","れんが","和歌","わか","歌をよむ","句"],
+    a:"連歌(れんが)とは、何人かが交代で句(く)をつないで、一つの長い歌をつくる、座(ざ)の楽しみよ。身分をこえて人が集い、言葉をつむぐ。わしも和歌や連歌をたしなんだ。戦で人と人が争う世に、言葉でつながり合う――それもまた、ひとつの救いであったのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["枯山水","かれさんすい","石庭","せきてい","砂と石","白砂と石"],
+    a:"枯山水(かれさんすい)とは、水を一滴もつかわず、白い砂と石だけで、山や川、海をあらわす庭じゃ。砂のもようを水の流れに見立て、石を山や島に見立てる。見る人の心の中で、景色がたちあがる。しずかで、おくぶかい、東山の美を代表する庭よ。"
+  },
+  {
+    cat:"文化",
+    keys:["庭","にわ","庭園","ていえん","庭づくり","にわづくり","庭が好き"],
+    a:"わしは、庭づくりがなにより好きであった。石をどこに置くか、木をどう配するか、水をどう流すか――そればかり考えておったわ。政よりも庭、と言われればその通りよ。じゃが、わしの庭づくりへの執心(しゅうしん)が、のちの日本庭園の美を育てたのも、また事実なのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["善阿弥","ぜんあみ","庭師","にわし","庭の名人"],
+    a:"善阿弥(ぜんあみ)は、わしがことのほか目をかけた、庭づくりの名人じゃ。もとは身分の低い者であったが、その腕は天下一。わしは身分にとらわれず、すぐれた者をそばに置いた。善阿弥の手になる庭は、いまに伝わる日本庭園の手本となったのよ。"
+  },
+  {
+    cat:"文化",
+    keys:["同朋衆","どうぼうしゅう","能阿弥","のうあみ","相阿弥","そうあみ","阿弥"],
+    a:"同朋衆(どうぼうしゅう)とは、わしのそばで、芸ごとや美術の世話をした者たちじゃ。能阿弥(のうあみ)・芸阿弥・相阿弥(そうあみ)の三代は、絵や茶、唐物(からもの)の目利きとして名高い。身分にかかわらず、芸にひいでた者を重んじる――それが、文化を花ひらかせる土であったのじゃ。"
+  },
+  {
+    cat:"文化",
+    keys:["狩野派","かのうは","狩野正信","かのうまさのぶ","絵師","えし"],
+    a:"わしに仕えた絵師に、狩野正信(かのうまさのぶ)がおる。彼がひらいた「狩野派(かのうは)」は、のちに何百年も日本の絵の中心となる、大きな流れとなった。わしの時代にまかれた種が、長く長く、日本の絵をいろどっていったのじゃ。ありがたいことよ。"
+  },
+  {
+    cat:"文化",
+    keys:["唐物","からもの","中国の品","明の品","輸入品","めいぶつ"],
+    a:"唐物(からもの)とは、明(みん)――いまの中国から渡ってきた、すぐれた品々のことよ。茶わん、絵、花入れなど、わしはこうした唐物を熱心に集め、めでた。よいものを見る目をやしない、それを部屋にかざる。美を集め、味わう――それが、わしのこの上ない楽しみであった。"
+  },
+  // ===== 趣味・人となり =====
+  {
+    cat:"人がら",
+    keys:["性格","せいかく","どんな人","人がら","ひとがら"],
+    a:"わしか。気はやさしく、美しいものをこよなく愛するたちであった。じゃが、ものごとをきっぱり決めるのは苦手でな……あとつぎのことでも迷い、争いをまねいてしもうた。やさしさと、決められぬ弱さ。その両方が、わしという人間よ。"
+  },
+  {
+    cat:"人がら",
+    keys:["政治より","文化が好き","文化を選","なぜ文化","政をすて","にげた","逃げた"],
+    a:"なぜ政よりも文化に向かったか。乱れきった世を、わしの力ではどうにもできぬと、心のどこかで投げ出してしもうたのじゃ。せめて美しいものをこの世にのこそう――そう思うた。にげたとも言える。じゃが、そのおかげで残った文化もある。人の生とは、皮肉なものよのう。"
+  },
+  {
+    cat:"人がら",
+    keys:["好き","すき","趣味","しゅみ","このみ","何が好き"],
+    a:"わしの好んだものか。茶の湯、庭、和歌、能、水墨画、唐物あつめ――どれも、しずかで美しいものばかりよ。さわがしい戦よりも、月を見て、茶をすすり、庭をながめるひととき。それがわしの、何よりのしあわせであったのじゃ。"
+  },
+  {
+    cat:"人がら",
+    keys:["お酒","おさけ","酒","宴","うたげ","パーティー","宴会"],
+    a:"わしは、宴(うたげ)や遊びを好んだ。じゃが、飢饉で人々が苦しむさなかにも宴をひらき、屋敷づくりに金をつかった――と、きびしく責められておる。美を愛する心が、ときに民の苦しみへの目を、くもらせてしまう。これも、わしのあやまちの一つよ。"
+  },
+  {
+    cat:"人がら",
+    keys:["建物","たてもの","建てる","家づくり","御所","花の御所","造営"],
+    a:"わしは、建物を建て、造りかえることに、たいそう熱心であった。花の御所(はなのごしょ)をはじめ、いくつもの屋敷に手を入れた。戦で世が貧しいのに、なお建てつづける――まわりは目をまるくしたであろう。美しいものを形にしたい一心が、わしを止められなんだのじゃ。"
+  },
+  {
+    cat:"人がら",
+    keys:["母に","妻に","頭が上がら","言いなり","おされ","強い母","強い妻"],
+    a:"正直に申せば、わしは母・重子や妻・富子といった、気の強い女(おなご)たちに、ずいぶん政を左右された。決めきれぬわしに代わって、彼女たちが動いたのよ。よく言えば、まかせ上手。悪く言えば、たよりない将軍――さて、そなたはどう見るかな。"
+  },
+  {
+    cat:"人がら",
+    keys:["後悔","こうかい","反省","はんせい","悔やむ","くやむ","つらかった"],
+    a:"わしに悔いはあるか、と。……ある。世を乱し、都を焼き、民を苦しめた。将軍として、なすべきことをなさなんだ。それは生がいの重荷じゃ。じゃが、なげき続けても世はもどらぬ。せめて美しいものをのこす――それが、わしにできたつぐないであったのよ。"
+  },
+  // ===== 最期・評価 =====
+  {
+    cat:"最期と評価",
+    keys:["いつ亡く","いつ死","亡くなった","死んだ","最期","さいご","死亡"],
+    a:"わしが世を去ったのは1490年、東山殿でのことじゃ。年は数えで五十五であった。前の年には、たのみの息子・義尚を先に失うておってな……心はすでに、ぬけがらのようであった。銀閣の完成を見ぬまま、わしは静かに目をとじたのよ。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["何歳","なんさい","いくつ","年齢","ねんれい","享年","何才"],
+    a:"わしが世を去ったのは数えで五十五のとき。生まれが1436年、世を去ったのが1490年ゆえな。決して長生きとは言えぬ。最後の数年は、戦の傷あとと、子に先立たれた悲しみの中にあった。心しずかな晩年とは、いかなんだのう。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["息子の死","義尚の死","義尚が死","子が先に","子をなくし","よしひさ死","義尚は"],
+    a:"わしの最大の悲しみは、息子・義尚(よしひさ)に先立たれたことよ。義尚は九代将軍となり、近江(おうみ)の六角氏を討ついくさの陣中で、若くして病に倒れた。二十五の若さであった。親が子をおくる――これにまさるつらさはない。わしの心は、ここで折れてしもうたのじゃ。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["跡継ぎはどう","あとつぎどう","次の将軍","誰が将軍","義尚のあと","十代","10代"],
+    a:"息子・義尚を失うたあと、次の将軍となったのは、弟・義視の子、義稙(よしたね)じゃ。十代将軍よ。あれほど争うた弟の血すじが、結局あとをついだ――めぐりめぐる縁(えん)とは、ふしぎなものよのう。わしはそれを見とどけて、まもなく世を去った。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["お墓","おはか","墓","ねむって","葬られ","眠る"],
+    a:"わしは、京の相国寺(しょうこくじ)などにねむっておると伝わる。じゃが、なきがらのありかよりも、わしを思い出してほしいのは銀閣の前よ。あの静かな庭に立ち、月をながめてくれれば――そこに、わしの心はいまも在る。それでよいのじゃ。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["評価","ひょうか","どう思われ","えらい","だめな","すごい","名将軍"],
+    a:"わしの評価は、まっぷたつよ。政では「世を乱した、だめな将軍」とそしられる。じゃが文化では「日本の美をつくった、偉大な人」とたたえられる。一人の人間の中に、大きな失敗と、大きな功績が同居する。さて、そなたはわしを、どう評するかな。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["良い面","よいところ","いいところ","功績","こうせき","すごいところ","のこしたもの"],
+    a:"わしがのこした良きものは、なんといっても文化よ。銀閣、書院造の和室、茶の湯、庭、水墨画――いまの日本の「美しさ」の多くは、わしの東山文化に根をもっておる。政では失敗したが、文化では確かなものを後の世に手わたした。それが、わしのほこりじゃ。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["悪い面","わるいところ","だめなところ","失敗したこと","あやまち","ダメだった"],
+    a:"わしの悪しき面は、はっきりしておる。あとつぎを決めきれず争いをまねき、応仁の乱をふせげず、都を焼き、飢饉の民を見すごし、なお屋敷づくりにふけった。将軍としての責めは、まぬがれぬ。よい面も悪い面も、両方ふくめて、わしという人間なのじゃ。"
+  },
+  {
+    cat:"最期と評価",
+    keys:["教訓","きょうくん","学ぶ","まなぶ","義政から","どう生きる","学べる"],
+    a:"わしから何を学ぶか。一つは、人の上に立つ者は、決めるべきときに決めねばならぬ、ということ。迷いは、ときに多くの人を苦しめる。もう一つは――どんな世にも、美しいものをのこす心は尊い、ということよ。失敗からも、功績からも、学べることはあるのじゃ。"
+  },
+  // ===== その他・補足 =====
+  {
+    cat:"いろいろ",
+    keys:["信長","のぶなが","織田","信長との","信長とのつながり"],
+    a:"わしのまねいた乱世は、やがて織田信長(おだのぶなが)のような英雄を生んだ。皮肉なものよ。室町幕府もまた、信長のころに義昭(よしあき)が追われ、ついに終わる。わしが弱らせ、信長が終わらせた――一つの幕府のおわりにも、長い物語があるのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["室町幕府","幕府どうなった","幕府の終わり","幕府ほろ","幕府滅"],
+    a:"わしの代に大きくゆらいだ室町幕府は、そのあとも百年あまり、細々と続いた。じゃが将軍の力はもどらず、ついに十五代・義昭(よしあき)が織田信長に追われ、幕府はおわった。下り坂のはじまりに、わしの代があった――そう言われると、胸が痛むのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["将軍の仕事","つとめ","役目","やくめ","八代将軍として"],
+    a:"将軍のつとめとは、本来、世をおさめ、人々を安んじることよ。じゃがわしの代には、もはや将軍の命令ひとつで天下が動く世ではなかった。力なき地位で何ができるか――わしはその答えを、政ではなく、文化に見いだしたのかもしれぬな。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["石","いし","名石","めいせき","庭石","石をあつめ"],
+    a:"わしは庭づくりのため、各地から名高い石をとりよせた。よい石ひとつのために、人を遠くまでつかわすこともあった。「石ばかり集めて」とあきれられもしたが、一つの石の置き方で、庭の景色はがらりと変わる。石は、庭の主役なのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["月","つき","月見","つきみ","お月見","名月"],
+    a:"わしは、月をながめるのがことのほか好きであった。銀閣の前の白い砂や向月台(こうげつだい)も、月の光を楽しむための工夫よ。しずかな夜、池に映る月をめでながら茶をすする――戦の世にあって、これにまさるやすらぎはなかったのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["茶わん","ちゃわん","茶碗","茶道具","どうぐ","茶道具あつめ"],
+    a:"わしは、すぐれた茶の道具や唐物の茶わんを集め、めでた。一つの名物(めいぶつ)の茶わんが、城や領地にもおとらぬほど尊ばれる――そういう価値を、わしらは茶の湯の中に育てた。よい道具を見る目をやしなうことも、ひとつの教養(きょうよう)であったのよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["一日","いちにち","日課","にっか","ふだん","毎日","一日の"],
+    a:"晩年のわしの一日か。朝は庭を見まわり、昼は絵や唐物をながめ、人をまねいて茶をたて、連歌の会をひらく。夜は月をめで、和歌をよむ……政の文(ふみ)よりも、美しいものに囲まれて過ごした。よく言えば風流、悪く言えば気楽な日々であったのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["風流","ふうりゅう","みやび","雅","上品","おくゆかしい"],
+    a:"「風流(ふうりゅう)」とは、しずかで上品な美しさを楽しむ心よ。月をめで、花をいけ、茶を味わい、和歌をよむ――そうした、心のゆとりから生まれる美しさじゃ。戦に明けくれる武人とはちがう、わしのような者の生き方。それも、ひとつの道なのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["今に残る","いまに残","現代に","のこっている","今でも","受けつがれ"],
+    a:"おどろくべきことに、わしの育てた文化は、五百年をこえた今も生きておる。和室の畳と床の間、茶道、いけばな、日本庭園……みな、東山文化に根をもつのじゃ。政の失敗は時とともに消えても、美しいものは、世代をこえて受けつがれる。文化とは、それほど強いのよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["なぜ有名","ゆうめい","知られて","教科書","きょうかしょ","なぜ習う"],
+    a:"なぜわしが教科書に出るか。一つは、応仁の乱という大事件を、将軍として経験した者だから。もう一つは、銀閣と東山文化という、日本の美の土台を築いた者だからよ。世を乱した面と、美をのこした面――その両方ゆえに、わしは語りつがれておるのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["義満と比べ","祖父と比べ","義満との違い","義満とどっち","くらべて"],
+    a:"祖父・義満は、強い将軍として天下をおさめ、はなやかな金閣を建てた。いっぽうわしは、政では祖父におよばず、銀閣としずかな文化をのこした。力の義満、美の義政――そう並べてみると、わしにもわしなりの役目があった気がするのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["名言","めいげん","ことば","辞世","じせい","座右"],
+    a:"わしの言葉として、特に名高い名言は、正直そう多くはない。和歌をよくよんだゆえ、言葉でなら心をのこしておる。うつろう世のはかなさ、月や花の美しさ――そんな歌を、いくつも書きのこした。声高な名言よりも、しずかな一首(いっしゅ)。それが、わしらしさかもしれぬのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["やさしい","優しい","いい人","にくめない","きらわれ"],
+    a:"わしは、人をむやみに殺すような、おそろしい将軍ではなかった。むしろ気は弱く、やさしすぎたのかもしれぬ。じゃが、上に立つ者のやさしさは、ときに決断のにぶさとなり、かえって多くの人を苦しめる。やさしさだけでは、世はおさめられぬ――それを、わしは身をもって知ったのよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["お金がない","貧しい","びんぼう","幕府の財政","財政","金がな"],
+    a:"応仁の乱や打ちつづく出費で、幕府のたくわえはとぼしくなっておった。それでもわしは建物や庭に金をつかったゆえ、台所は苦しかった。妻・富子がお金を集めてまわったのも、そうした事情があったからじゃ。美を求める裏には、こうした苦労もあったのよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["住まい","すまい","どこに住","屋敷","やしき","御所に住"],
+    a:"わしは将軍のころ、花の御所(はなのごしょ)などの屋敷に住んだ。じゃが、いちばん心やすらぐ住まいは、晩年の東山殿(ひがしやまどの)よ。銀閣と庭にかこまれ、しずかに暮らすあの場所――そここそ、わしのまことの「家」であったのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["身分","みぶん","身分をこえ","平等","へいとう","身分関係なく"],
+    a:"茶の湯や連歌、芸の世界では、身分の上下をしばし忘れ、人と人とが心を通わせた。庭師の善阿弥や同朋衆のように、身分は低くとも、すぐれた者をわしはそばに置いた。美の前では、人は等しい――そういう場を育てたことは、わしの数少ないほこりよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["肖像","しょうぞう","似顔","絵にのこ","どんな顔","姿","見た目","みため"],
+    a:"わしの姿を伝える肖像(しょうぞう)も、いくらか残っておる。おだやかな、もの思わしげな顔つきに描かれることが多いのう。戦をひきいる猛々(たけだけ)しい将軍ではなく、美を愛する文化人――そういう人がらが、絵にもにじんでおるのかもしれぬ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["子孫","しそん","末裔","まつえい","血すじ","続いて"],
+    a:"わしの直の血すじは、息子・義尚が若くして子をのこさず世を去ったため、わしの代でほぼとだえた。あとは弟・義視の家すじが将軍をついでいった。血はとだえても、わしののこした文化は、いまも生きつづけておる。それが、わしの「子孫」とも言えるかもしれぬのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["夢","ゆめ","のぞみ","願い","ねがい","やりたかった","理想"],
+    a:"わしの夢か。若いころは、乱れた世を立て直す立派な将軍になることを願うた。じゃがそれはかなわなんだ。そこでわしは、もう一つの夢――この世に美しいものをのこすこと――に生きた。果たせた夢と、果たせなかった夢。その両方が、わしの一生よ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["京都","きょうと","みやこ","都","京","東山"],
+    a:"わしの生きた京都は、応仁の乱で焼け、すっかり荒れはててしもうた。じゃが、わしが東山にきずいた銀閣と文化は、その京都を、いまもなお美しい「文化の都」たらしめておる。こわした者であり、美をのこした者でもある――わしと京都の縁(えん)は、まことに深いのじゃ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["戦をした","いくさ","戦った","出陣","武将として","戦は強い"],
+    a:"わしは、みずから刀をふるって戦場をかけるような将軍ではなかった。戦よりも、茶や庭を好む身じゃ。じゃが、わしの「決められぬ」性分が、まわりの大名たちを戦へとかりたて、応仁の乱をまねいてしもうた。手は汚さずとも、責めはまぬがれぬ――それが、わしのつらいところよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["銀閣は今","いまどこ","見られる","観光","行ける","残ってる","現存"],
+    a:"銀閣(慈照寺)は、いまも京都の東山に立っておる。応仁の乱や時の流れをこえて、五百年あまり残りつづけ、世界遺産にもなった。そなたも、いつか訪れてみるがよい。白い砂庭ごしに観音殿をながめれば、わしの愛した静けさが、きっと感じられよう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["文化を大事","なぜ文化を","文化に力","芸術を","美を求め","美をのこ"],
+    a:"なぜそこまで文化に力をそそいだか。乱れた世で、力では何も守れなんだわしにとって、美しいものこそ、唯一こわされずに後へのこせるものに思えたのじゃ。刀は人をきずつけるが、一輪の花、一服の茶は、人の心をなぐさめる。わしは、そちらに賭(か)けたのよ。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["幸せ","しあわせ","幸福","満足","よかった","後悔ばかり"],
+    a:"わしは幸せだったか、と。……むずかしい問いよ。将軍としては失敗し、子に先立たれ、悔いは多い。じゃが、美しいものに囲まれ、心ゆくまで風流に生きた晩年は、わしにとって、たしかにしあわせな時であった。人の幸不幸とは、一面では計れぬものよのう。"
+  },
+  {
+    cat:"いろいろ",
+    keys:["どんな人物","まとめ","結局","けっきょく","義政って","ひとことで","一言で"],
+    a:"ひとことで言えば、わしは「政に失敗し、美をのこした将軍」じゃ。応仁の乱で世を乱したが、銀閣と東山文化で、日本の美の土台を築いた。失敗と功績、その両方をあわせもつ――それが足利義政という人間よ。よいところも、あやまちも、どうか両方おぼえておくれ。"
+  }
+];
+
+// 入力にいちばん合う答えをさがす（該当した問題の番号も返す）
+function findAnswer(text){
+  const t = (text||"").replace(/\s/g,"");
+  if(!t) return null;
+  let bestIdx=-1, bestScore=0;
+  for(let i=0;i<KB.length;i++){
+    let score=0;
+    for(const k of KB[i].keys){ if(t.includes(k)) score += k.length; }
+    if(score>bestScore){bestScore=score; bestIdx=i;}
+  }
+  return bestScore>0 ? {a:KB[bestIdx].a, idx:bestIdx, cat:KB[bestIdx].cat} : null;
+}
+
+const NOT_FOUND = [
+  "ふむ、それはわしにもよう分からぬ問いじゃ。言葉を変えて、もう一度きいてみよ。たとえば『銀閣』『応仁の乱』『東山文化』『日野富子』などはどうじゃ？",
+  "はて、聞きおぼえのない問いじゃのう。『茶の湯』や『書院造』のことなら、いくらでも語ってやれるぞ。",
+  "むむ、それについては答えを持ちあわせておらぬ。べつの言い方で、もう一度たずねてみよ。"
+];
+
+const GREET = "ようこそ。わしが足利義政じゃ。室町幕府の八代将軍をつとめた者よ。政(まつりごと)では世を乱してしもうたが、茶の湯や庭、銀閣など、のちの世にのこる文化を育てた。下のますに聞きたいことを書いて、リターンを押すか「きく」を押すがよい。しずかに、なんでも語ろうぞ。";
+
+// ===== タイプライター表示 =====
+const answerEl = document.getElementById('answer');
+const faceEl = document.getElementById('face');
+let typing=null;
+let mouthTimer=null;
+function startMouth(){
+  stopMouth();
+  // 口を開いた絵と閉じた絵をすばやく切り替えて「ぱくぱく」させる
+  mouthTimer=setInterval(()=>{ faceEl.classList.toggle('talking-open'); },130);
+}
+function stopMouth(){
+  if(mouthTimer){ clearInterval(mouthTimer); mouthTimer=null; }
+  faceEl.classList.remove('talking-open'); // 話し終わりは口を閉じた絵にもどす
+}
+function speak(text, mood){
+  faceEl.classList.remove('talk','seikai','zannen'); void faceEl.offsetWidth;
+  faceEl.classList.add(mood || 'talk');
+  startMouth();
+  if(typing) clearInterval(typing);
+  answerEl.innerHTML="";
+  let i=0;
+  typing=setInterval(()=>{
+    if(i>=text.length){clearInterval(typing); stopMouth(); return;}
+    answerEl.appendChild(document.createTextNode(text[i]));
+    i++;
+  },32);
+}
+
+function handleAsk(text){
+  const r = findAnswer(text);
+  if(r){
+    speak(r.a);
+    record('kb:'+r.idx, r.cat);   // 探検スタンプに記録
+  }
+  else{ speak(NOT_FOUND[Math.floor(Math.random()*NOT_FOUND.length)]); }
+}
+
+// ===== 入力イベント =====
+const qEl=document.getElementById('q');
+
+// IME（日本語入力）の変換確定中かどうかを記録する
+let composing=false;
+qEl.addEventListener('compositionstart',()=>{ composing=true; });
+qEl.addEventListener('compositionend',()=>{ composing=false; });
+
+document.getElementById('askBtn').onclick=()=>handleAsk(qEl.value);
+qEl.addEventListener('keydown',e=>{
+  // 漢字変換などの確定リターンでは送信しない。
+  // 変換が確定し、ふつうにリターンを押したときだけ質問を送る。
+  if(e.key==='Enter' && !composing && !e.isComposing){
+    handleAsk(qEl.value);
+  }
+});
+
+// ===== 探検スタンプ と クイズ の仕組み =====
+let panelMode='qa';
+const seen = new Set();        // しらべた／正解したことの記録（"kb:3"や"quiz:5"）
+const seenCat = {};            // 分野ごとの記録数
+let quizCorrectTotal = 0;      // クイズの正解（のべ）
+let streak = 0;                // れんぞく正解
+let qTotal = 0;               // クイズにこたえた数
+const earnedSet = new Set();   // 獲得ずみスタンプ（labで管理）
+
+// トースト（スタンプ獲得のおしらせ）
+const toastEl = document.getElementById('toast');
+let toastTimer=null;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toastEl.classList.remove('show'), 2600);
+}
+
+// スタンプの絵（画像）
+const ART = {
+  "生いたち":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/oitati.png" alt="生いたち">',
+  "家族":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/kazoku.png" alt="家族">',
+  "政治と乱":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/tatakai.png" alt="政治と乱">',
+  "銀閣":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/ginkaku.png" alt="銀閣">',
+  "文化":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/bunka.png" alt="文化">',
+  "人がら":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/hitogara.png" alt="人がら">',
+  "最期と評価":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/saigo.png" alt="最期と評価">',
+  "いろいろ":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/iroiro.png" alt="いろいろ">',
+  "ものしりっ子":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/monosiri.png" alt="ものしりっ子">',
+  "大はかせ":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/hakase.png" alt="大はかせ">',
+  "クイズ名人":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/kuizumeijin.png" alt="クイズ名人">',
+  "全制覇":'<img src="https://raw.githubusercontent.com/byakusen/hgeogel.yosimasa_kun/main/seiha.png" alt="全制覇">'
+};
+
+// スタンプの定義（ぜんぶで12こ）
+function earnedCountExceptLast(){
+  let c=0;
+  for(let i=0;i<STAMPS.length-1;i++){ if(STAMPS[i].test()) c++; }
+  return c;
+}
+const STAMPS = [
+  {k:"生", lab:"生いたち",   test:()=>(seenCat["生いたち"]||0)>=2,  prog:()=>Math.min(seenCat["生いたち"]||0,2)+"/2"},
+  {k:"家", lab:"家族",       test:()=>(seenCat["家族"]||0)>=2,      prog:()=>Math.min(seenCat["家族"]||0,2)+"/2"},
+  {k:"乱", lab:"政治と乱",   test:()=>(seenCat["政治と乱"]||0)>=2,  prog:()=>Math.min(seenCat["政治と乱"]||0,2)+"/2"},
+  {k:"銀", lab:"銀閣",       test:()=>(seenCat["銀閣"]||0)>=2,      prog:()=>Math.min(seenCat["銀閣"]||0,2)+"/2"},
+  {k:"文", lab:"文化",       test:()=>(seenCat["文化"]||0)>=2,      prog:()=>Math.min(seenCat["文化"]||0,2)+"/2"},
+  {k:"心", lab:"人がら",     test:()=>(seenCat["人がら"]||0)>=2,    prog:()=>Math.min(seenCat["人がら"]||0,2)+"/2"},
+  {k:"終", lab:"最期と評価", test:()=>(seenCat["最期と評価"]||0)>=2,prog:()=>Math.min(seenCat["最期と評価"]||0,2)+"/2"},
+  {k:"雅", lab:"いろいろ",   test:()=>(seenCat["いろいろ"]||0)>=2,  prog:()=>Math.min(seenCat["いろいろ"]||0,2)+"/2"},
+  {k:"知", lab:"ものしりっ子",test:()=>seen.size>=8,  prog:()=>Math.min(seen.size,8)+"/8"},
+  {k:"博", lab:"大はかせ",   test:()=>seen.size>=18, prog:()=>Math.min(seen.size,18)+"/18"},
+  {k:"答", lab:"クイズ名人", test:()=>quizCorrectTotal>=5, prog:()=>Math.min(quizCorrectTotal,5)+"/5"},
+  {k:"全", lab:"全制覇",     test:()=>earnedCountExceptLast()>=11, prog:()=>Math.min(earnedCountExceptLast(),11)+"/11"},
+];
+
+// 記録する（同じ問いは一度だけ数える）
+function record(token, cat){
+  if(!seen.has(token)){
+    seen.add(token);
+    if(cat){ seenCat[cat]=(seenCat[cat]||0)+1; }
+  }
+  checkStamps();
+  if(panelMode==='stamp') renderStamps();
+}
+
+// スタンプ獲得を判定（新しく取れたらおしらせ）
+function checkStamps(){
+  STAMPS.forEach(s=>{
+    if(!earnedSet.has(s.lab) && s.test()){
+      earnedSet.add(s.lab);
+      showToast('「'+s.lab+'」のスタンプをゲット！');
+    }
+  });
+  const c=document.getElementById('stampCount');
+  if(c) c.textContent = earnedSet.size;
+}
+
+// スタンプ帳をえがく
+function renderStamps(){
+  const grid=document.getElementById('stampGrid');
+  grid.innerHTML='';
+  STAMPS.forEach(s=>{
+    const earned=earnedSet.has(s.lab);
+    const d=document.createElement('div');
+    d.className='stamp'+(earned?' earned':'');
+    if(earned){
+      d.innerHTML='<div class="art">'+(ART[s.lab]||'')+'</div>'
+        +'<div class="lab">'+s.lab+'</div>';
+    }else{
+      d.innerHTML='<div class="lab">'+s.lab+'</div>'
+        +'<div class="prog">'+s.prog()+'</div>';
+    }
+    grid.appendChild(d);
+  });
+  document.getElementById('stampCount').textContent = earnedSet.size;
+}
+
+// ===== クイズの問題 =====
+const QUIZ = [
+  {cat:"銀閣", q:"銀閣（ぎんかく）には、本物の銀がはってある。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:1,
+   exp:"銀閣に銀ははっておらぬ。木のままの、しずかなたたずまいこそ、わしの好んだ美しさよ。"},
+  {cat:"生いたち", q:"足利義政は、室町幕府の何代将軍だったかな？",
+   choices:["三代将軍","八代将軍","十五代将軍"], ans:1,
+   exp:"わしは八代将軍じゃ。金閣を建てた義満は三代、わしの祖父にあたるぞ。"},
+  {cat:"政治と乱", q:"応仁の乱（おうにんのらん）で、京都の町は焼け野原になった。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"そのとおり。十一年も続いた戦で、わが都は焼けてしもうた。今もって悔やまれる。"},
+  {cat:"政治と乱", q:"応仁の乱は、だいたい何年つづいたかな？",
+   choices:["1年","11年","100年"], ans:1,
+   exp:"十一年じゃ。これほど長く都で戦が続けば、世が乱れぬはずがない。"},
+  {cat:"政治と乱", q:"義政の妻・日野富子（ひのとみこ）は、お金あつめがとても得意だった。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"富子は米やお金、関所(せきしょ)であきないをし、大金を集めた。よくも悪くも、たぐいまれな才よ。"},
+  {cat:"銀閣", q:"義政が銀閣をふくむ山荘を建てたのは、京都のどこ？",
+   choices:["北山（きたやま）","東山（ひがしやま）","西山（にしやま）"], ans:1,
+   exp:"東山(ひがしやま)じゃ。だからこの時代の文化を「東山文化」というのよ。"},
+  {cat:"生いたち", q:"金閣（きんかく）を建てたのは、義政のおじいさん・足利義満である。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"そのとおり。はなやかな金閣は祖父・義満の作。わびた銀閣が、このわしの作よ。"},
+  {cat:"文化", q:"義政が育てた、しずかで素朴（そぼく）な文化を何という？",
+   choices:["北山文化","東山文化","天平文化"], ans:1,
+   exp:"東山文化(ひがしやまぶんか)じゃ。わび・さびの心を大きく育てた文化よ。"},
+  {cat:"人がら", q:"義政は戦がとても強く、自分から戦場をかけめぐる将軍だった。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:1,
+   exp:"いいや。わしは戦より、茶や庭を好む身であった。そこが、わしの弱さでもあったのう。"},
+  {cat:"文化", q:"今の和室の「畳・床の間（とこのま）」のもとになった部屋のつくりは？",
+   choices:["寝殿造（しんでんづくり）","書院造（しょいんづくり）","校倉造（あぜくらづくり）"], ans:1,
+   exp:"書院造(しょいんづくり)じゃ。同仁斎(どうじんさい)という小部屋が、その早い例よ。"},
+  {cat:"政治と乱", q:"応仁の乱のあと、世の中は「戦国時代」へと入っていった。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"そのとおり。応仁の乱は「戦国時代のはじまり」とよく言われるのじゃ。"},
+  {cat:"文化", q:"義政と同じころに活やくした、水墨画（すいぼくが）の大名人はだれ？",
+   choices:["雪舟（せっしゅう）","葛飾北斎","歌川広重"], ans:0,
+   exp:"雪舟(せっしゅう)じゃ。墨一色で雄大な山水をえがいた、まことの名人よ。"},
+  {cat:"文化", q:"義政は、お茶を楽しむ「茶の湯（ちゃのゆ）」を好んだ。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"そのとおり。しずかな部屋で心をおちつける茶の湯を、わしは愛したのじゃ。"},
+  {cat:"家族", q:"応仁の乱のきっかけの一つ、義政のあとつぎ争いは、だれとだれの間で起きた？",
+   choices:["父と兄","弟（義視）と息子（義尚）","母と妻"], ans:1,
+   exp:"弟の義視(よしみ)と、息子の義尚(よしひさ)じゃ。わしが迷うたことが、争いをまねいた。"},
+  {cat:"銀閣", q:"銀閣（慈照寺）は今ものこっていて、世界遺産になっている。○か×か？",
+   choices:["○ そうだ","× ちがう"], ans:0,
+   exp:"そのとおり。五百年をこえて京都の東山に立ち、世界遺産となっておる。"},
+  {cat:"最期と評価", q:"足利義政の評価として、いちばん近いのはどれ？",
+   choices:["戦の名人だった","政治は失敗、でも文化はすごい","新しい機械の発明家"], ans:1,
+   exp:"そのとおり。政では世を乱したが、文化では日本の美の土台を築いた。両方が、わしよ。"},
+  {cat:"家族", q:"足利義政の妻（つま）はだれ？",
+   choices:["日野富子（ひのとみこ）","濃姫（のうひめ）","お市（おいち）"], ans:0,
+   exp:"日野富子(ひのとみこ)じゃ。賢く、お金あつめにすぐれた、気の強い人であった。"},
+  {cat:"いろいろ", q:"義政が亡くなったあと、室町幕府はすぐに終わってしまった。○か×か？",
+   choices:["○ すぐ終わった","× しばらく続いた"], ans:1,
+   exp:"幕府はそのあとも百年あまり続いた。じゃが力はもどらず、やがて織田信長のころに終わるのじゃ。"}
+];
+
+let curQuiz=null, lastQuizIdx=-1, answered=false;
+
+function newQuiz(){
+  answered=false;
+  faceEl.classList.remove('seikai');
+  let i;
+  do{ i=Math.floor(Math.random()*QUIZ.length); }while(QUIZ.length>1 && i===lastQuizIdx);
+  lastQuizIdx=i; curQuiz=QUIZ[i];
+  speak('【クイズ】'+curQuiz.q);
+  const box=document.getElementById('quizChoices');
+  box.innerHTML='';
+  curQuiz.choices.forEach((c,ci)=>{
+    const b=document.createElement('button');
+    b.className='qchoice'; b.textContent=c;
+    b.onclick=()=>answerQuiz(ci,b);
+    box.appendChild(b);
+  });
+}
+
+function answerQuiz(ci,btn){
+  if(answered) return;
+  answered=true; qTotal++;
+  const buttons=document.querySelectorAll('#quizChoices .qchoice');
+  buttons.forEach(b=>b.disabled=true);
+  buttons[curQuiz.ans].classList.add('correct');
+  if(ci===curQuiz.ans){
+    quizCorrectTotal++; streak++;
+    record('quiz:'+lastQuizIdx, curQuiz.cat);
+    speak('せいかい！　'+curQuiz.exp, 'seikai');
+  }else{
+    btn.classList.add('wrong'); streak=0;
+    speak('おしい、ちがうのじゃ。　'+curQuiz.exp);
+  }
+  updateQuizMeta();
+}
+
+function updateQuizMeta(){
+  document.getElementById('qStreak').textContent=streak;
+  document.getElementById('qTotal').textContent=qTotal;
+  document.getElementById('qCorrect').textContent=quizCorrectTotal;
+}
+document.getElementById('quizNext').onclick=()=>newQuiz();
+
+// ===== モード切替 =====
+const panels={
+  qa:document.getElementById('panel-qa'),
+  quiz:document.getElementById('panel-quiz'),
+  stamp:document.getElementById('panel-stamp'),
+  shoin:document.getElementById('panel-shoin')
+};
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    const m=btn.dataset.mode; panelMode=m;
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    for(const key in panels){ panels[key].classList.toggle('show', key===m); }
+    faceEl.classList.remove('seikai');
+    if(m==='quiz'){ curQuiz ? speak('【クイズ】'+curQuiz.q) : newQuiz(); }
+    else if(m==='stamp'){
+      renderStamps();
+      speak('これまでに集めたスタンプじゃ。ものしりモードで問いをしらべ、クイズに正解すると、スタンプがたまっていくぞ。ぜんぶで12こ、集められるかな？');
+    }
+    else if(m==='shoin'){
+      renderShoin();
+      speak('ここは書院造(しょいんづくり)の部屋じゃ。床の間に違い棚、仏間に付書院……今の和室のもとになった、わしの東山文化を代表する部屋のつくりよ。番号のついたところを押してみよ。名と、そのいわれを語ってしんぜよう。');
+    }
+    else{ speak(GREET); }
+  };
+});
+
+// ===== 書院造（クリックで名前と説明） =====
+const SHOIN = [
+  {id:0,name:"仏間",         x:17,y:45,exp:"これは仏間(ぶつま)じゃ。ご先祖さまをまつる仏壇(ぶつだん)を置くための場所よ。家の中でも、とくに大切にされる一角での。黒と金にかがやく仏壇が、おごそかにおさめられておる。"},
+  {id:1,name:"天袋",         x:44,y:43,exp:"これは天袋(てんぶくろ)じゃ。違い棚や床の間の上のほうにつけた、小さな戸だなよ。手のとどきにくい上にあるゆえ、ふだんあまり使わぬ物をしまっておくのに使うのじゃ。"},
+  {id:2,name:"床の間",       x:67,y:40,exp:"これは床の間(とこのま)じゃ。部屋の正面に、少し高くこしらえた『かざりの場所』よ。掛け軸(かけじく)や花をかざる、部屋でいちばん大切なところとされた。お客は床の間を背にした席が、上の座(ざ)であったのじゃ。"},
+  {id:3,name:"違い棚",       x:43,y:63,exp:"これは違い棚(ちがいだな)じゃ。高さをずらして組んだ棚でな、本や茶の道具、美しい品をかざる。床の間のとなりによく作られた、見た目にも雅(みやび)な棚よ。"},
+  {id:4,name:"床柱",         x:59,y:50,exp:"これは床柱(とこばしら)じゃ。床の間のわきに立てる、大切な柱よ。わざと木のかわや形をいかした、見ばえのよい木をえらぶことが多い。床の間の『顔』ともいえる柱なのじゃ。"},
+  {id:5,name:"付書院・障子", x:83,y:51,exp:"これは付書院(つけしょいん)じゃ。窓ぎわにこしらえた、机のような出っぱりよ。ここの障子(しょうじ)から入る光で書きものをした。『書院造(しょいんづくり)』という名のもとにもなった、大事なところじゃ。"},
+  {id:6,name:"地袋（中央）", x:44,y:81,exp:"これは地袋(じぶくろ)じゃ。床(ゆか)に近い、下のほうにつけた戸だなよ。上の戸だなが天袋(てんぶくろ)、下の戸だながこの地袋。よく使う物をしまうのに、ちょうどよいのじゃ。"},
+  {id:7,name:"地袋（仏間の下）", x:17,y:85,exp:"これも地袋(じぶくろ)じゃ。仏間の下にもうけた、下のほうの戸だなよ。床に近いので物の出し入れがしやすく、ふだん使いの品をしまっておくのじゃ。"},
+  {id:8,name:"畳",           x:33,y:95,exp:"これは畳(たたみ)じゃ。いぐさで作った床を、部屋いちめんにしきつめておる。畳を部屋ぜんたいにしくのは、この書院造からひろまった。今の和室のもとよ。"}
+];
+let activeShoin=-1, shoinEdit=false;
+const shoinWrap=document.getElementById('shoinWrap');
+const shoinOverlay=document.getElementById('shoinOverlay');
+const shoinSelect=document.getElementById('shoinSelect');
+
+function loadShoinPos(){
+  try{ const s=localStorage.getItem('shoinPos2'); if(s){ const o=JSON.parse(s);
+    SHOIN.forEach(p=>{ if(o[p.id]){ p.x=o[p.id].x; p.y=o[p.id].y; } }); } }catch(e){}
+}
+function saveShoinPos(){
+  try{ const o={}; SHOIN.forEach(p=>{ o[p.id]={x:p.x,y:p.y}; }); localStorage.setItem('shoinPos2',JSON.stringify(o)); }catch(e){}
+}
+function renderShoin(){
+  shoinOverlay.innerHTML='';
+  SHOIN.forEach(p=>{
+    const h=document.createElement('div');
+    h.className='hot'+(activeShoin===p.id?' active':'');
+    h.style.left=p.x+'%'; h.style.top=p.y+'%';
+    h.textContent=(p.id+1); h.title=p.name;
+    h.onclick=(e)=>{
+      e.stopPropagation();
+      if(shoinEdit){ shoinSelect.value=p.id; return; }
+      activeShoin=p.id; speak('【書院造】'+p.exp); renderShoin();
+    };
+    shoinOverlay.appendChild(h);
+  });
+}
+// 部品をえらぶプルダウンを用意
+SHOIN.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=(p.id+1)+'. '+p.name; shoinSelect.appendChild(o); });
+
+// 先生用：絵の上をクリックして番号の位置を直す
+shoinWrap.addEventListener('click',(e)=>{
+  if(!shoinEdit) return;
+  const r=shoinWrap.getBoundingClientRect();
+  const x=Math.round(((e.clientX-r.left)/r.width)*1000)/10;
+  const y=Math.round(((e.clientY-r.top)/r.height)*1000)/10;
+  const id=parseInt(shoinSelect.value,10);
+  const p=SHOIN.find(s=>s.id===id);
+  if(p){ p.x=x; p.y=y; saveShoinPos(); renderShoin(); }
+});
+document.getElementById('shoinEditToggle').onclick=function(){
+  shoinEdit=!shoinEdit;
+  this.classList.toggle('active',shoinEdit);
+  this.textContent = shoinEdit ? 'なおすのを やめる' : '位置をなおす（先生用）';
+  shoinSelect.style.display = shoinEdit ? 'inline-block':'none';
+  document.getElementById('shoinEditNote').style.display = shoinEdit ? 'block':'none';
+  shoinWrap.style.cursor = shoinEdit ? 'crosshair':'default';
+};
+loadShoinPos();
+
+// 最初のあいさつ
+speak(GREET);
+</script>
+</body>
+</html>
